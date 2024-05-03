@@ -20,7 +20,7 @@ def parse_prod_descr(prod_href) -> str:
     soup = BeautifulSoup(response.content, 'html.parser')
     p_list = soup.find('article', {'class': 'product_page'}).find_all('p')
     description = p_list[3].get_text()
-    time.sleep(1)
+    # time.sleep(1)
     return description
 def parse_page(page_url) -> tuple:
     """ get url 'http://books.toscrape.com/catalogue/category/books/travel_2/index.html'"""
@@ -90,7 +90,6 @@ def main():
         else:
             cat_href = url + href
             all_prod_list.extend((parse_category(cat_href)))
-    print(all_prod_list)
     # write_csv(all_prod_list)
     write_json(all_prod_list)
 
