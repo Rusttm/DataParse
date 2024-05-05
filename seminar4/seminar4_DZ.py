@@ -5,18 +5,11 @@ import requests
 from lxml import html
 import pandas as pd
 import csv
-
-# Определение целевого URL
-url = "https://cbr.ru/currency_base/daily/"
-
-# Отправка HTTP GET запроса на целевой URL с пользовательским заголовком User-Agent
-response = requests.get(url, headers={
-    'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/108.0.0.0 Safari/537.36'})
-# Парсинг HTML-содержимого ответа с помощью библиотеки lxml
-tree = html.fromstring(response.content)
+from datetime import datetime
 
 
 def exchange_course(tree) -> pd.DataFrame:
+    """parses table of exchange courses in csv file"""
     df = pd.DataFrame()
     try:
         # Использование выражения XPath для выбора всех строк таблицы в пределах таблицы с классом 'records-table'
@@ -30,9 +23,43 @@ def exchange_course(tree) -> pd.DataFrame:
         # Запись даных в файл csv
         data_rows = [row.xpath(".//td/text()") for row in rows]
         df = pd.DataFrame(data_rows, columns=table_columns)
-        df.to_csv("exchange.csv")
-        print("file 'exchange.csv' successfully saved")
     return df
 
 
-exchange_course(tree)
+def get_date() -> datetime.date:
+    """ returns date after input, or today date"""
+    res_date = datetime.now()
+    date_req = input("Введите дату в формате 21.12.2022 (Ввод -пропустить): ")
+    try:
+        res_date = datetime.strptime(date_req, "%d.%m.%Y")
+        if res_date.date() > datetime.now().date():
+            raise ValueError(f"Можно посмотреть курс только до сегодняшнего дня: {res_date.date()}")
+    except Exception as e:
+        print(f"Ошибка ввода даты, error: {e}")
+        print(f"Собираю курсы на сегодня: {res_date.date()}")
+    return res_date
+
+
+def exchange_course_on_date():
+    """ saves table of courses on date in csv table """
+    req_date = get_date()
+    date_str = req_date.strftime("%d.%m.%Y")
+    try:
+        # Определение целевого URL
+        url = f"https://cbr.ru/currency_base/daily/?UniDbQuery.Posted=True&UniDbQuery.To={date_str}"
+        # Отправка HTTP GET запроса на целевой URL с пользовательским заголовком User-Agent
+        response = requests.get(url, headers={
+            'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/108.0.0.0 Safari/537.36'})
+        # Парсинг HTML-содержимого ответа с помощью библиотеки lxml
+        tree = html.fromstring(response.content)
+        result_df = exchange_course(tree)
+    except Exception as e:
+        print(f"cant parse site, error {e}")
+    else:
+        file_name = f"exchange_{req_date.strftime('%d_%m_%y')}.csv"
+        result_df.to_csv(file_name)
+        print(f"Данные успешно записаны в файл '{file_name}'")
+
+
+if __name__ == '__main__':
+    exchange_course_on_date()
