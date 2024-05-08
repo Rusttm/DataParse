@@ -8,20 +8,15 @@ class ForestKrepezhSpider(scrapy.Spider):
 
     def parse(self, response):
         positions = response.xpath('//div[contains(@class, "item_block")]')
-        for pos in positions:
+        for pos in positions[:5]:
             pos_info = pos.xpath('./div/div[2]/div/div[contains(@class, "item_info")]')
             prod_name = pos_info.xpath('./div[contains(@class, "item-title")]/a/span/text()').get().strip()
             prod_href = pos_info.xpath('./div[contains(@class, "item-title")]/a/@href').get()
-            # prod_price_price_kilo = pos_info.xpath('./div[contains(@class,"cost")]/div/div[contains(@class, "price")]/@data-value').get()
-            # prod_price_str = pos.xpath('./div/div[2]/div/div[contains(@class, "footer_button")]/div[2]/div[contains(@class, "total_sum")]/div/span/text()').get()
-            # prod_price_2 = pos_info.xpath('./div[contains(@class, "cost prices")]/div/div/span/span/text()').get()
-            # prod_price = float(prod_price_str.strip().replace(",", "."))
-            # print(prod_name, prod_href)
             context = dict({'prod_name': prod_name, 'prod_href': prod_href})
             yield response.follow(url=prod_href, callback=self.parse_prod, meta=context)
         next_page_href = response.xpath('//a[@class="flex-next"]/@href').extract()
-        # if next_page_href and next_page_href[0] != '/catalog/krepezh/?PAGEN_1=3':
-        if next_page_href:
+        if next_page_href and next_page_href[0] != '/catalog/krepezh/?PAGEN_1=3':
+            # if next_page_href:
             next_page_url = response.urljoin(next_page_href[0])
             request = scrapy.Request(url=next_page_url)
             yield request
@@ -39,7 +34,7 @@ class ForestKrepezhSpider(scrapy.Spider):
             prod_price_1k = prod_price_1k.strip().replace(" ", "")
             prod_price = float(prod_price_1k.replace(",", "."))
         except:
-            prod_price = None
+            prod_price = 0
 
         try:
             prod_box = prod_box.strip().replace(" ", "")
