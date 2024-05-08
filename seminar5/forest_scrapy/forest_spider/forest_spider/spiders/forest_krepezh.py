@@ -33,16 +33,16 @@ class ForestKrepezhSpider(scrapy.Spider):
         prod_name = response.request.meta['prod_name']
         prod_href = response.request.meta['prod_href']
         # prod_name_new = prod_card.xpath('./section/h1/text()').get().strip()
-        prod_price_1k = prod_card.xpath('.//span[@class="price_value"]/text()').get().strip()
-        prod_box = prod_card.xpath('//div[contains(@class, "counter_block_info")]/@data-countinpack').get().strip()
+        prod_price_1k = prod_card.xpath('.//span[@class="price_value"]/text()').get()
+        prod_box = prod_card.xpath('//div[contains(@class, "counter_block_info")]/@data-countinpack').get()
         try:
-            prod_price_1k = prod_price_1k.replace(" ", "")
+            prod_price_1k = prod_price_1k.strip().replace(" ", "")
             prod_price = float(prod_price_1k.replace(",", "."))
         except:
             prod_price = None
 
         try:
-            prod_box = prod_box.replace(" ", "")
+            prod_box = prod_box.strip().replace(" ", "")
             prod_in_box = float(prod_box.replace(",", "."))
         except:
             prod_in_box = 1
