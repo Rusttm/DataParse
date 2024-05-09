@@ -35,17 +35,10 @@ class UnsplashFotoSpider(scrapy.Spider):
 
     def parse_foto(self, response):
         """ parse foto page and extract location"""
-        # foto_place = response.xpath('//span[contains(@class,"jU5nt GcCli wP5Cw FEdrY")]/text()').get().strip()
         foto_title = response.xpath('//div[contains(@class, "c489k")]/h1/text()').get().strip()
         foto_img_url = response.xpath('//div[@class="WxXog"]/img/@src').get().strip()
-        # foto_img_hrefs_text = response.xpath('//div[@class="WxXog"]/img/@srcset').get()
-        # foto_img_hrefs_list = foto_img_hrefs_text.split(",")
         page_theme = response.meta.get("page_theme")
-        # foto_img_urls = [href.strip().split(" ") for href in foto_img_hrefs_list]
-        # foto_img_urls = foto_img_hrefs_text
-        # foto_page_href = response.meta.get("foto_page_href")
         foto_site_name = foto_img_url.split("/")[-1].split("?")[0]
-        # yield {'foto_title': foto_title, 'foto_place': foto_place, 'foto_page_href': foto_page_href, 'foto_img_url': foto_img_url, 'foto_img_urls': foto_img_urls}
         file_name = f"{foto_site_name}.jpg"
         up_up_dir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
         image_path = os.path.join(up_up_dir, "images", file_name)
