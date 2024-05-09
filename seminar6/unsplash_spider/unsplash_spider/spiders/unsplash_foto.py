@@ -15,7 +15,10 @@ class UnsplashFotoSpider(scrapy.Spider):
             page_href = page.xpath('./@href').get()
             time.sleep(1)
             page_theme = page.xpath('.//div/text()').get()
-            print(f"{page_theme=}")
+            # print(f"{page_theme=}")
+            if not page_theme:
+                page_theme = page.xpath('./text()').get()
+                # print(f"{page_theme=}")
             context = dict({'page_theme': page_theme})
             yield response.follow(url=page_href, callback=self.parse_page, meta=context)
             # break
@@ -52,7 +55,6 @@ class UnsplashFotoSpider(scrapy.Spider):
 
     def save_foto(self, response):
         image_path = response.meta.get('image_path')
-        print(f"{os.path.dirname(os.path.dirname(os.path.realpath(__file__)))=}")
         with open(image_path, "wb") as f:
             f.write(response.body)
 
