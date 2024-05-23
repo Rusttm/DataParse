@@ -29,38 +29,51 @@ options.add_argument('window-size=1200x600')
 driver = webdriver.Chrome(options=options)
 
 driver.get("https://for-est.ru/")
-# выбираем город Москва
+# меняем свое местоположение
+# открываем таблицу с городами
 city_choose_line = "//div[contains(@class, 'region_wrapper')]//*[name()='use' and @*='#i-angle']"
 city_slider = driver.find_element(By.XPATH, city_choose_line)
 city_slider.click()
 time.sleep(DELAY_TIME)
+# выбираем город
 moscow_choose_line = "//a[contains(@href, '/?region=5478')]"
 moscow_choose = driver.find_element(By.XPATH, moscow_choose_line)
 moscow_choose.click()
 time.sleep(DELAY_TIME)
 # переходим на страницу с инструментами
-open_inst_page = driver.find_element(By.XPATH, "//a[@href='/catalog/instrument/' and @class='left-catalog__link parent']")
-# (//a[@class='left-catalog__link parent'])[4]
-open_inst_page.click()
-# открываем еще одну страницу
-open_next_page = driver.find_element(By.XPATH, "//div[@class='ajax_load_btn']")
-open_next_page.click()
+driver.get("https://for-est.ru/catalog/instrument/")
 time.sleep(DELAY_TIME)
-instruments_titles = driver.find_elements(By.XPATH, "//a[@class='dark_link']/span")
-instruments_prices = driver.find_elements(By.XPATH, "//span[@class='price_value']")
+# открываем еще страницы
+try:
+    open_next_page = driver.find_element(By.XPATH, "//div[@class='ajax_load_btn']")
+    open_next_page.click()
+    time.sleep(DELAY_TIME)
+    instruments_titles = driver.find_elements(By.XPATH, "//a[@class='dark_link']/span")
+    instruments_prices = driver.find_elements(By.XPATH, "//span[@class='price_value']")
+except Exception as e:
+    print(f"Cant open next page, error: {e}")
+# создаем список словарей
 result_list = []
 for i, elem in enumerate(instruments_titles):
-    inst_title = instruments_titles[i].text
-    inst_price = str(instruments_prices[2*i].text).replace(" ", "")
-    # inst_price = int(str(elem.text).replace(" ", ""))
-    result_list.append({"title": inst_title, "price": inst_price})
-    print(f"{inst_title}:{inst_price}")
+    try:
+        inst_title = instruments_titles[i].text
+        inst_price_line = str(instruments_prices[2*i].text).replace(" ", "")
+        inst_price = float(inst_price_line.replace(",", "."))
+        result_list.append({"title": inst_title, "price": inst_price})
+        print(f"{inst_title}:{inst_price}")
+    except Exception as e:
+        print(f"Cant parse position No{1}!, error: {e}")
 driver.save_screenshot('screen.png')
 driver.quit()
 
+# записываем их в файл
 if len(result_list) > 0:
     keys = result_list[0].keys()
     with open("instruments_price.csv", "w", newline="") as file:
         w = csv.DictWriter(file, keys)
         w.writeheader()
         w.writerows(rowdicts=result_list)
+else:
+    print("You havent parsed site> there are no data for saving!")
+
+
