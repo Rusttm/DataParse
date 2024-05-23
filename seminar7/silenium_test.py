@@ -43,26 +43,30 @@ time.sleep(DELAY_TIME)
 # переходим на страницу с инструментами
 driver.get("https://for-est.ru/catalog/instrument/")
 time.sleep(DELAY_TIME)
-# открываем еще страницы
-try:
-    open_next_page = driver.find_element(By.XPATH, "//div[@class='ajax_load_btn']")
-    open_next_page.click()
-    time.sleep(DELAY_TIME)
-    instruments_titles = driver.find_elements(By.XPATH, "//a[@class='dark_link']/span")
-    instruments_prices = driver.find_elements(By.XPATH, "//span[@class='price_value']")
-except Exception as e:
-    print(f"Cant open next page, error: {e}")
+# открываем все страницы
+
+while True:
+    try:
+        open_next_page = driver.find_elements(By.XPATH, "//div[@class='ajax_load_btn']")
+        open_next_page[-1].click()
+        time.sleep(DELAY_TIME)
+    except Exception as e:
+        print(f"Cant open next page, error: {e}")
+        break
+
+product_cards = driver.find_elements(By.XPATH, "//div[@class='list_item_info']")
 # создаем список словарей
 result_list = []
-for i, elem in enumerate(instruments_titles):
+for prod in product_cards:
     try:
-        inst_title = instruments_titles[i].text
-        inst_price_line = str(instruments_prices[2*i].text).replace(" ", "")
-        inst_price = float(inst_price_line.replace(",", "."))
-        result_list.append({"title": inst_title, "price": inst_price})
-        print(f"{inst_title}:{inst_price}")
+        inst_title = str(prod.find_element(By.CLASS_NAME, "dark_link").text).strip()
+        inst_price = prod.find_element(By.CLASS_NAME, "price_value").text
+        inst_price_float = float(inst_price.replace(" ", "").replace(",", "."))
+        print(f"{inst_title}:{inst_price_float}")
+        result_list.append({"title": inst_title, "price": inst_price_float})
     except Exception as e:
-        print(f"Cant parse position No{1}!, error: {e}")
+        print(f"Product information not found, error: {e}")
+
 driver.save_screenshot('screen.png')
 driver.quit()
 
