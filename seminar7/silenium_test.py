@@ -78,6 +78,6 @@ if len(result_list) > 0:
         w.writeheader()
         w.writerows(rowdicts=result_list)
 else:
-    print("You havent parsed site> there are no data for saving!")
+    print("You havent parsed site, there are no data for saving!")
 
 
